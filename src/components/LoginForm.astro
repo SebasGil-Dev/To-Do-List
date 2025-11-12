@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+---
+<div class="min-h-screen flex items-center justify-center bg-gray-100 py-6">
+  <div class="bg-white rounded-3xl shadow-xl flex flex-col md:flex-row max-w-3xl w-full overflow-hidden">
+    <!-- Imagen/ilustración izquierda -->
+    <div class="hidden md:flex md:w-1/2 bg-purple-200 items-center justify-center relative">
+      <img src="/src/assets/background.svg" alt="Ilustración fondo" class="max-h-96 m-auto" />
+    </div>
+    <!-- Derecha, logo y formulario -->
+    <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
+      <!-- Logo To-Do List -->
+<div class="flex justify-center mb-2">
+  <img
+    src="/To-Do List Logo.png"
+    alt="TO-DO List Logo"
+    class="h-12 object-contain"
+    draggable="false"
+  />
+</div>
+      <!-- Tabs alternador -->
+      <div class="flex justify-center items-center mb-6 gap-4" id="login-tabs">
+        <button type="button" id="tab-ingresar" class="text-lg font-semibold transition border-b-2 text-red-400 border-red-400">Ingresar</button>
+        <span class="text-xl font-thin">|</span>
+        <button type="button" id="tab-registrarse" class="text-lg font-semibold transition border-b-2 text-gray-700 border-transparent">Registrarse</button>
+      </div>
+      <!-- Formulario de ingresar -->
+      <form id="form-ingresar" class="space-y-4">
+        <input type="text" placeholder="Enter username" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="password" placeholder="Password" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <div class="flex justify-between items-center text-xs">
+          <a href="#" class="text-blue-600 hover:underline">Recovery Password</a>
+        </div>
+        <button type="submit" class="w-full bg-red-400 hover:bg-red-500 transition py-2 rounded-md text-white font-semibold text-lg shadow-md active:scale-95">Sign In</button>
+      </form>
+      <!-- Formulario de registrarse -->
+      <form id="form-registrarse" class="space-y-4 hidden">
+        <input type="text" placeholder="Full Name" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="email" placeholder="Email" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="password" placeholder="Password" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <div class="flex items-center gap-2">
+          <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-red-400 border-gray-300 rounded" />
+          <label for="terms" class="text-xs text-gray-700">Acepto términos</label>
+        </div>
+        <button type="submit" class="w-full bg-red-400 hover:bg-red-500 transition py-2 rounded-md text-white font-semibold text-lg shadow-md active:scale-95">Registrarse</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const tabLogin = document.getElementById('tab-ingresar');
+    const tabRegister = document.getElementById('tab-registrarse');
+    const formLogin = document.getElementById('form-ingresar');
+    const formRegister = document.getElementById('form-registrarse');
+
+    if (tabLogin && tabRegister && formLogin && formRegister) {
+      tabLogin.addEventListener("click", function () {
+        tabLogin.classList.add('text-red-400', 'border-red-400');
+        tabLogin.classList.remove('text-gray-700', 'border-transparent');
+        tabRegister.classList.remove('text-red-400', 'border-red-400');
+        tabRegister.classList.add('text-gray-700', 'border-transparent');
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+      });
+
+      tabRegister.addEventListener("click", function () {
+        tabRegister.classList.add('text-red-400', 'border-red-400');
+        tabRegister.classList.remove('text-gray-700', 'border-transparent');
+        tabLogin.classList.remove('text-red-400', 'border-red-400');
+        tabLogin.classList.add('text-gray-700', 'border-transparent');
+        formRegister.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+      });
+    }
+  });
+</script>
