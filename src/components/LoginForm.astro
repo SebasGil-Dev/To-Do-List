@@ -1,23 +1,24 @@
 ---
 import '../styles/global.css';
 ---
-<div class="min-h-screen flex items-center justify-center bg-gray-100 py-6">
+<div class="flex items-center justify-center py-[12vh]">
   <div class="bg-white rounded-3xl shadow-xl flex flex-col md:flex-row max-w-3xl w-full overflow-hidden">
     <!-- Imagen/ilustración izquierda -->
     <div class="hidden md:flex md:w-1/2 bg-purple-200 items-center justify-center relative">
-      <img src="/src/assets/background.svg" alt="Ilustración fondo" class="max-h-96 m-auto" />
+    <img src="/portada login.png" alt="Portada login" class="w-full h-full object-cover" />
+
     </div>
     <!-- Derecha, logo y formulario -->
     <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
       <!-- Logo To-Do List -->
-<div class="flex justify-center mb-2">
-  <img
-    src="/To-Do List Logo.png"
-    alt="TO-DO List Logo"
-    class="h-12 object-contain"
-    draggable="false"
-  />
-</div>
+      <div class="flex justify-center mb-2">
+        <img
+          src="/To-Do List Logo.png"
+          alt="Logo To-Do List"
+          class="h-20 object-contain"
+          draggable="false"
+        />
+      </div>
       <!-- Tabs alternador -->
       <div class="flex justify-center items-center mb-6 gap-4" id="login-tabs">
         <button type="button" id="tab-ingresar" class="text-lg font-semibold transition border-b-2 text-red-400 border-red-400">Ingresar</button>
@@ -26,21 +27,37 @@ import '../styles/global.css';
       </div>
       <!-- Formulario de ingresar -->
       <form id="form-ingresar" class="space-y-4">
-        <input type="text" placeholder="Enter username" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
-        <input type="password" placeholder="Password" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
-        <div class="flex justify-between items-center text-xs">
-          <a href="#" class="text-blue-600 hover:underline">Recovery Password</a>
-        </div>
-        <button type="submit" class="w-full bg-red-400 hover:bg-red-500 transition py-2 rounded-md text-white font-semibold text-lg shadow-md active:scale-95">Sign In</button>
+        <input type="text" placeholder="Nombre de usuario" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="password" placeholder="Contraseña" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+            <div class="flex justify-between items-center text-xs">
+            <a href="#" class="text-red-400 hover:text-red-500 underline">Recuperar contraseña</a>
+            </div>
+        <button type="submit" class="w-full bg-red-400 hover:bg-red-500 transition py-2 rounded-md text-white font-semibold text-lg shadow-md active:scale-95">Iniciar sesión</button>
       </form>
       <!-- Formulario de registrarse -->
       <form id="form-registrarse" class="space-y-4 hidden">
-        <input type="text" placeholder="Full Name" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
-        <input type="email" placeholder="Email" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
-        <input type="password" placeholder="Password" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
-        <div class="flex items-center gap-2">
+        <input type="text" placeholder="Nombre completo" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="email" placeholder="Correo electrónico" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <input type="password" placeholder="Contraseña" class="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-red-400 focus:outline-none bg-gray-50" required />
+        <!-- Tooltip términos arriba, fondo blanco y texto negro -->
+        <div class="flex items-center gap-2 relative">
           <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-red-400 border-gray-300 rounded" />
-          <label for="terms" class="text-xs text-gray-700">Acepto términos</label>
+          <label for="terms" class="text-xs text-gray-700">
+            Acepto&nbsp;
+            <span
+              tabindex="0"
+              class="cursor-pointer text-red-400 underline relative"
+              aria-describedby="tooltip-terms"
+              id="tooltip-trigger"
+            >términos y condiciones</span>
+          </label>
+          <span
+            role="tooltip"
+            id="tooltip-terms"
+            class="invisible opacity-0 absolute z-10 left-0 bottom-full mb-2 w-56 rounded bg-white border border-gray-300 px-3 py-2 text-black text-xs transition-opacity duration-200 shadow-lg"
+          >
+            Esto es una prueba técnica, los términos y condiciones son solo demostrativos.
+          </span>
         </div>
         <button type="submit" class="w-full bg-red-400 hover:bg-red-500 transition py-2 rounded-md text-white font-semibold text-lg shadow-md active:scale-95">Registrarse</button>
       </form>
@@ -50,6 +67,7 @@ import '../styles/global.css';
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    // Alternador entre Ingresar/Registrarse
     const tabLogin = document.getElementById('tab-ingresar');
     const tabRegister = document.getElementById('tab-registrarse');
     const formLogin = document.getElementById('form-ingresar');
@@ -64,7 +82,6 @@ import '../styles/global.css';
         formLogin.classList.remove('hidden');
         formRegister.classList.add('hidden');
       });
-
       tabRegister.addEventListener("click", function () {
         tabRegister.classList.add('text-red-400', 'border-red-400');
         tabRegister.classList.remove('text-gray-700', 'border-transparent');
@@ -72,6 +89,28 @@ import '../styles/global.css';
         tabLogin.classList.add('text-gray-700', 'border-transparent');
         formRegister.classList.remove('hidden');
         formLogin.classList.add('hidden');
+      });
+    }
+
+    // Tooltip en términos y condiciones arriba con blanco-negro
+    const trigger = document.getElementById('tooltip-trigger');
+    const tooltip = document.getElementById('tooltip-terms');
+    if (trigger && tooltip) {
+      trigger.addEventListener("mouseenter", () => {
+        tooltip.classList.remove("invisible", "opacity-0");
+        tooltip.classList.add("visible", "opacity-100");
+      });
+      trigger.addEventListener("mouseleave", () => {
+        tooltip.classList.add("invisible", "opacity-0");
+        tooltip.classList.remove("visible", "opacity-100");
+      });
+      trigger.addEventListener("focus", () => {
+        tooltip.classList.remove("invisible", "opacity-0");
+        tooltip.classList.add("visible", "opacity-100");
+      });
+      trigger.addEventListener("blur", () => {
+        tooltip.classList.add("invisible", "opacity-0");
+        tooltip.classList.remove("visible", "opacity-100");
       });
     }
   });
