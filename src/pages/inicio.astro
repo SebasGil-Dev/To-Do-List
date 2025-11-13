@@ -1,0 +1,70 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Inicio">
+  <main class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+    <section class="bg-white rounded-3xl shadow-lg max-w-xl w-full p-8">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">
+        ¡Hola, <span id="nombre-usuario">usuario</span>! 👋
+      </h1>
+      <p class="text-gray-600 mb-6">
+        Sesión iniciada correctamente. Esta será tu página de inicio / panel principal.
+      </p>
+
+      <div class="flex flex-col gap-3">
+        <button
+          id="ir-a-tareas"
+          class="w-full bg-red-400 hover:bg-red-500 text-white font-semibold py-2 rounded-lg shadow active:scale-95 transition"
+        >
+          Ir a mis tareas (próximamente)
+        </button>
+
+        <button
+          id="logout-btn"
+          class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-lg active:scale-95 transition"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 🔐 Comprobar si hay token; si no, mandar al login
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/";
+      return;
+    }
+
+    // Mostrar el correo (o nombre) del usuario si lo guardaste
+    const userEmail = localStorage.getItem("userEmail") || "";
+    const nombreSpan = document.getElementById("nombre-usuario");
+    if (nombreSpan) {
+      nombreSpan.textContent = userEmail || "usuario";
+    }
+
+    // Botón de logout
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userEmail");
+        window.location.href = "/";
+      });
+    }
+
+    // Botón para ir a /tareas (cuando la tengamos hecha)
+    const tareasBtn = document.getElementById("ir-a-tareas");
+    if (tareasBtn) {
+      tareasBtn.addEventListener("click", () => {
+        // Más adelante creamos esta ruta
+        // window.location.href = "/tareas";
+        alert("Aquí luego te llevaremos a la vista de tareas 😄");
+      });
+    }
+  });
+</script>
