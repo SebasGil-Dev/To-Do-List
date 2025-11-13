@@ -1,70 +1,661 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+// AQUÍ leemos la env (esto se ejecuta del lado de Astro, no en el navegador)
+const PUBLIC_API_URL =
+    import.meta.env.PUBLIC_API_URL ||
+    "https://to-do-listo-api-w1i0.onrender.com";
 ---
 
-<Layout title="Inicio">
-  <main class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-    <section class="bg-white rounded-3xl shadow-lg max-w-xl w-full p-8">
-      <h1 class="text-2xl font-bold text-gray-800 mb-2">
-        ¡Hola, <span id="nombre-usuario">usuario</span>! 👋
-      </h1>
-      <p class="text-gray-600 mb-6">
-        Sesión iniciada correctamente. Esta será tu página de inicio / panel principal.
-      </p>
 
-      <div class="flex flex-col gap-3">
-        <button
-          id="ir-a-tareas"
-          class="w-full bg-red-400 hover:bg-red-500 text-white font-semibold py-2 rounded-lg shadow active:scale-95 transition"
-        >
-          Ir a mis tareas (próximamente)
-        </button>
+<Layout title="Inicio · To-Do Listo">
+    <main class="min-h-screen bg-gray-50">
+        <div class="flex min-h-screen">
+            <!-- SIDEBAR -->
+            <aside
+                id="sidebar"
+                class="bg-white w-72 border-r border-gray-200 hidden md:block md:relative fixed inset-y-0 left-0 z-40 shadow md:shadow-none"
+            >
+                <div class="h-full flex flex-col">
+                    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-800">Filtros</h2>
+                        <button
+                            id="closeSidebarBtn"
+                            class="md:hidden inline-flex items-center justify-center rounded-full p-1 hover:bg-gray-100"
+                            aria-label="Cerrar filtros"
+                        >
+                            ✕
+                        </button>
+                    </div>
 
-        <button
-          id="logout-btn"
-          class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-lg active:scale-95 transition"
-        >
-          Cerrar sesión
-        </button>
-      </div>
-    </section>
-  </main>
+                    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+                        <!-- Estado -->
+                        <section>
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                Estado
+                            </h3>
+                            <select
+                                id="filter-state"
+                                class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                            >
+                                <option value="all">Todos</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="completed">Completadas</option>
+                            </select>
+                        </section>
+
+                        <!-- Ordenar -->
+                        <section>
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                Ordenar por
+                            </h3>
+                            <select
+                                id="filter-sort"
+                                class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                            >
+                                <option value="created-desc">Creación · recientes primero</option>
+                                <option value="created-asc">Creación · antiguas primero</option>
+                                <option value="title-asc">Nombre A → Z</option>
+                                <option value="title-desc">Nombre Z → A</option>
+                            </select>
+                        </section>
+
+                        <!-- Buscar por nombre -->
+                        <section>
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                Buscar por nombre
+                            </h3>
+                            <input
+                                id="filter-search"
+                                type="text"
+                                placeholder="Buscar tarea..."
+                                class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                            />
+                        </section>
+
+                        <!-- Filtro por fecha (creación) -->
+                        <section class="space-y-2">
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Rango de fechas (creación)
+                            </h3>
+                            <div class="flex flex-col gap-2">
+                                <input
+                                    id="filter-date-from"
+                                    type="date"
+                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                                />
+                                <input
+                                    id="filter-date-to"
+                                    type="date"
+                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                                />
+                            </div>
+                        </section>
+
+                        <!-- Botón para limpiar filtros -->
+                        <section>
+                            <button
+                                id="clearFiltersBtn"
+                                class="w-full text-sm px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
+                            >
+                                Limpiar filtros
+                            </button>
+                        </section>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="flex-1 flex flex-col md:ml-72">
+                <!-- Header -->
+                <header
+                    class="sticky top-0 z-30 bg-gray-50/90 backdrop-blur border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between"
+                >
+                    <div class="flex items-center gap-3">
+                        <button
+                            id="openSidebarBtn"
+                            class="md:hidden inline-flex items-center justify-center rounded-full p-2 hover:bg-gray-200"
+                            aria-label="Abrir filtros"
+                        >
+                            ☰
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-800">Mis tareas</h1>
+                            <p class="text-xs text-gray-500" id="welcomeText">Cargando usuario...</p>
+                        </div>
+                    </div>
+
+                    <button
+                        id="logoutBtn"
+                        class="text-sm px-3 py-1.5 rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    >
+                        Cerrar sesión
+                    </button>
+                </header>
+
+                <!-- Contenido -->
+                <section class="flex-1 px-4 md:px-8 py-4 md:py-6 space-y-6">
+                    <!-- Nueva tarea -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5">
+                        <h2 class="text-base font-semibold text-gray-800 mb-3">Crear nueva tarea</h2>
+                        <form id="new-task-form" class="grid gap-3 md:grid-cols-[2fr,3fr,auto] items-start">
+                            <div class="md:col-span-1 w-full">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Título</label>
+                                <input
+                                    id="new-title"
+                                    type="text"
+                                    placeholder="Ej: Llamar al paciente"
+                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                                    required
+                                />
+                            </div>
+                            <div class="md:col-span-1 w-full">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Descripción</label>
+                                <input
+                                    id="new-description"
+                                    type="text"
+                                    placeholder="Detalles opcionales..."
+                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-red-400 focus:border-red-400"
+                                />
+                            </div>
+                            <div class="flex items-end md:justify-end">
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-400 hover:bg-red-500 active:scale-95 transition"
+                                >
+                                    + Añadir
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Mensajes de estado -->
+                    <div id="statusMessage" class="hidden text-sm"></div>
+
+                    <!-- Lista de tareas -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200">
+                        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                            <h2 class="text-base font-semibold text-gray-800">Tareas</h2>
+                            <span id="tasksCounter" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">0 tareas</span>
+                        </div>
+
+                        <div id="tasksContainer" class="divide-y divide-gray-100">
+                            <!-- items se renderizan por JS -->
+                        </div>
+
+                        <div id="loadingTasks" class="p-4 text-sm text-gray-500 hidden">Cargando tareas...</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
 </Layout>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // 🔐 Comprobar si hay token; si no, mandar al login
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "/";
-      return;
-    }
+<script type="module">
+    // API_URL viene del frontmatter de Astro (se lee del atributo data-api-url en <main>)
+    const API_URL = "https://to-do-listo-api-w1i0.onrender.com";
+    console.log("API_URL en inicio:", API_URL);
 
-    // Mostrar el correo (o nombre) del usuario si lo guardaste
-    const userEmail = localStorage.getItem("userEmail") || "";
-    const nombreSpan = document.getElementById("nombre-usuario");
-    if (nombreSpan) {
-      nombreSpan.textContent = userEmail || "usuario";
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem("token");
+        const userEmail = localStorage.getItem("userEmail");
 
-    // Botón de logout
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userEmail");
-        window.location.href = "/";
-      });
-    }
+        if (!token) {
+            window.location.href = "/";
+            return;
+        }
 
-    // Botón para ir a /tareas (cuando la tengamos hecha)
-    const tareasBtn = document.getElementById("ir-a-tareas");
-    if (tareasBtn) {
-      tareasBtn.addEventListener("click", () => {
-        // Más adelante creamos esta ruta
-        // window.location.href = "/tareas";
-        alert("Aquí luego te llevaremos a la vista de tareas 😄");
-      });
-    }
-  });
+        // Elementos UI
+        const sidebar = document.getElementById("sidebar");
+        const openSidebarBtn = document.getElementById("openSidebarBtn");
+        const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const welcomeText = document.getElementById("welcomeText");
+
+        const newTaskForm = document.getElementById("new-task-form");
+        const newTitleInput = document.getElementById("new-title");
+        const newDescInput = document.getElementById("new-description");
+
+        const statusMessage = document.getElementById("statusMessage");
+        const tasksContainer = document.getElementById("tasksContainer");
+        const tasksCounter = document.getElementById("tasksCounter");
+        const loadingTasks = document.getElementById("loadingTasks");
+
+        const filterState = document.getElementById("filter-state");
+        const filterSort = document.getElementById("filter-sort");
+        const filterSearch = document.getElementById("filter-search");
+        const filterDateFrom = document.getElementById("filter-date-from");
+        const filterDateTo = document.getElementById("filter-date-to");
+        const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+        // Bienvenida
+        if (userEmail && welcomeText) {
+            welcomeText.textContent = `Sesión iniciada como ${userEmail}`;
+        } else if (welcomeText) {
+            welcomeText.textContent = "Sesión iniciada";
+        }
+
+        // Sidebar responsive
+        if (openSidebarBtn && sidebar) {
+            openSidebarBtn.addEventListener("click", () => {
+                sidebar.classList.remove("hidden");
+            });
+        }
+        if (closeSidebarBtn && sidebar) {
+            closeSidebarBtn.addEventListener("click", () => {
+                sidebar.classList.add("hidden");
+            });
+        }
+
+        // Logout
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("userEmail");
+                window.location.href = "/";
+            });
+        }
+
+        // Estado en memoria
+        let tasks = [];
+        let filteredTasks = [];
+
+        const filters = {
+            state: "all",
+            sort: "created-desc",
+            search: "",
+            dateFrom: "",
+            dateTo: "",
+        };
+
+        function setStatus(message, type = "info") {
+            if (!statusMessage) return;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove(
+                "hidden",
+                "text-red-600",
+                "text-green-600",
+                "text-gray-600"
+            );
+            if (type === "error") statusMessage.classList.add("text-red-600");
+            else if (type === "success") statusMessage.classList.add("text-green-600");
+            else statusMessage.classList.add("text-gray-600");
+        }
+
+        function clearStatus() {
+            if (!statusMessage) return;
+            statusMessage.classList.add("hidden");
+            statusMessage.textContent = "";
+        }
+
+        async function fetchTasks() {
+            loadingTasks.classList.remove("hidden");
+            clearStatus();
+
+            try {
+                const res = await fetch(`${API_URL}/tasks`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (res.status === 401) {
+                    alert("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("userEmail");
+                    window.location.href = "/";
+                    return;
+                }
+
+                if (!res.ok) {
+                    setStatus("Error al cargar las tareas.", "error");
+                    return;
+                }
+
+                const data = await res.json();
+                tasks = Array.isArray(data) ? data : [];
+                applyFilters();
+            } catch (err) {
+                console.error("Error al obtener tareas:", err);
+                setStatus("Error de conexión al cargar tareas.", "error");
+            } finally {
+                loadingTasks.classList.add("hidden");
+            }
+        }
+
+        function applyFilters() {
+            filteredTasks = tasks.slice();
+
+            // Filtro por estado
+            if (filters.state === "pending") {
+                filteredTasks = filteredTasks.filter((t) => !t.completed);
+            } else if (filters.state === "completed") {
+                filteredTasks = filteredTasks.filter((t) => t.completed);
+            }
+
+            // Filtro por búsqueda en título
+            if (filters.search) {
+                const q = filters.search.toLowerCase();
+                filteredTasks = filteredTasks.filter((t) =>
+                    (t.title || "").toLowerCase().includes(q)
+                );
+            }
+
+            // Filtro por fecha de creación
+            if (filters.dateFrom) {
+                const from = new Date(filters.dateFrom);
+                filteredTasks = filteredTasks.filter((t) => {
+                    const created = new Date(t.created_at);
+                    return created >= from;
+                });
+            }
+            if (filters.dateTo) {
+                const to = new Date(filters.dateTo);
+                filteredTasks = filteredTasks.filter((t) => {
+                    const created = new Date(t.created_at);
+                    return created <= to;
+                });
+            }
+
+            // Ordenamiento
+            filteredTasks.sort((a, b) => {
+                const da = new Date(a.created_at).getTime();
+                const db = new Date(b.created_at).getTime();
+
+                switch (filters.sort) {
+                    case "created-asc":
+                        return da - db;
+                    case "created-desc":
+                        return db - da;
+                    case "title-asc":
+                        return (a.title || "").localeCompare(b.title || "");
+                    case "title-desc":
+                        return (b.title || "").localeCompare(a.title || "");
+                    default:
+                        return db - da;
+                }
+            });
+
+            renderTasks();
+        }
+
+        function renderTasks() {
+            tasksContainer.innerHTML = "";
+
+            if (tasksCounter) {
+                tasksCounter.textContent = `${filteredTasks.length} ${
+                    filteredTasks.length === 1 ? "tarea" : "tareas"
+                }`;
+            }
+
+            if (filteredTasks.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "p-6 text-sm text-gray-500";
+                empty.textContent =
+                    "No hay tareas que coincidan con los filtros seleccionados.";
+                tasksContainer.appendChild(empty);
+                return;
+            }
+
+            filteredTasks.forEach((task) => {
+                const row = document.createElement("article");
+                row.className =
+                    "px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2";
+
+                const left = document.createElement("div");
+                left.className = "flex items-start gap-3";
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = !!task.completed;
+                checkbox.className =
+                    "mt-1 h-4 w-4 rounded border-gray-300 text-red-400 focus:ring-red-400 cursor-pointer";
+
+                const mainInfo = document.createElement("div");
+
+                const title = document.createElement("h3");
+                title.className = "text-sm font-medium text-gray-800 line-clamp-1";
+                title.textContent = task.title || "(Sin título)";
+
+                const desc = document.createElement("p");
+                desc.className = "text-xs text-gray-500 mt-0.5 line-clamp-2";
+                desc.textContent = task.description || "Sin descripción.";
+
+                const meta = document.createElement("p");
+                meta.className = "text-[11px] text-gray-400 mt-1";
+                const created = new Date(task.created_at);
+                meta.textContent = `Creada el ${created.toLocaleDateString()} a las ${created.toLocaleTimeString()}`;
+
+                mainInfo.appendChild(title);
+                mainInfo.appendChild(desc);
+                mainInfo.appendChild(meta);
+
+                left.appendChild(checkbox);
+                left.appendChild(mainInfo);
+
+                const right = document.createElement("div");
+                right.className = "flex items-center gap-2 self-end md:self-auto";
+
+                const stateBadge = document.createElement("span");
+                stateBadge.className =
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium " +
+                    (task.completed
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700");
+                stateBadge.textContent = task.completed ? "Completada" : "Pendiente";
+
+                const editBtn = document.createElement("button");
+                editBtn.className =
+                    "text-xs px-2 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100";
+                editBtn.textContent = "Editar";
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className =
+                    "text-xs px-2 py-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200";
+                deleteBtn.textContent = "Eliminar";
+
+                right.appendChild(stateBadge);
+                right.appendChild(editBtn);
+                right.appendChild(deleteBtn);
+
+                row.appendChild(left);
+                row.appendChild(right);
+
+                // Eventos
+                checkbox.addEventListener("change", () => {
+                    updateTask(task.id, { completed: checkbox.checked });
+                });
+
+                editBtn.addEventListener("click", () => {
+                    const newTitle = prompt("Nuevo título:", task.title || "");
+                    if (newTitle === null) return;
+                    const newDesc = prompt("Nueva descripción:", task.description || "");
+                    if (newDesc === null) return;
+                    updateTask(task.id, {
+                        title: newTitle.trim(),
+                        description: newDesc.trim(),
+                    });
+                });
+
+                deleteBtn.addEventListener("click", () => {
+                    if (confirm(`¿Seguro que quieres eliminar la tarea "${task.title}"?`)) {
+                        deleteTask(task.id);
+                    }
+                });
+
+                tasksContainer.appendChild(row);
+            });
+        }
+
+        async function createTask(title, description) {
+            clearStatus();
+            try {
+                const res = await fetch(`${API_URL}/tasks`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ title, description }),
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    setStatus(data.error || "Error al crear la tarea.", "error");
+                    return;
+                }
+
+                const data = await res.json();
+                // algunos backends devuelven un array, otros un objeto
+                const createdTask = Array.isArray(data) ? data[0] : data;
+                tasks.unshift(createdTask);
+                applyFilters();
+                setStatus("Tarea creada correctamente.", "success");
+            } catch (err) {
+                console.error("Error al crear tarea:", err);
+                setStatus("Error de conexión al crear la tarea.", "error");
+            }
+        }
+
+        async function updateTask(id, updates) {
+            clearStatus();
+
+            const index = tasks.findIndex((t) => t.id === id);
+            if (index === -1) return;
+
+            const original = tasks[index];
+
+            // Cuerpo que enviamos al backend
+            const body = {
+                title: updates.title !== undefined ? updates.title : original.title,
+                description:
+                    updates.description !== undefined
+                        ? updates.description
+                        : original.description,
+                completed:
+                    updates.completed !== undefined ? updates.completed : original.completed,
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(body),
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    setStatus(data.error || "Error al actualizar la tarea.", "error");
+                    return;
+                }
+
+                // ✅ No usamos la respuesta; actualizamos el array local
+                tasks[index] = { ...original, ...body };
+                applyFilters();
+                setStatus("Tarea actualizada.", "success");
+            } catch (err) {
+                console.error("Error al actualizar tarea:", err);
+                setStatus("Error de conexión al actualizar la tarea.", "error");
+            }
+        }
+
+        async function deleteTask(id) {
+            clearStatus();
+            try {
+                const res = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    setStatus(data.error || "Error al eliminar la tarea.", "error");
+                    return;
+                }
+
+                tasks = tasks.filter((t) => t.id !== id);
+                applyFilters();
+                setStatus("Tarea eliminada.", "success");
+            } catch (err) {
+                console.error("Error al eliminar tarea:", err);
+                setStatus("Error de conexión al eliminar la tarea.", "error");
+            }
+        }
+
+        // Eventos de filtros
+        if (filterState) {
+            filterState.addEventListener("change", () => {
+                filters.state = filterState.value;
+                applyFilters();
+            });
+        }
+        if (filterSort) {
+            filterSort.addEventListener("change", () => {
+                filters.sort = filterSort.value;
+                applyFilters();
+            });
+        }
+        if (filterSearch) {
+            filterSearch.addEventListener("input", () => {
+                filters.search = filterSearch.value.trim();
+                applyFilters();
+            });
+        }
+        if (filterDateFrom) {
+            filterDateFrom.addEventListener("change", () => {
+                filters.dateFrom = filterDateFrom.value;
+                applyFilters();
+            });
+        }
+        if (filterDateTo) {
+            filterDateTo.addEventListener("change", () => {
+                filters.dateTo = filterDateTo.value;
+                applyFilters();
+            });
+        }
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener("click", () => {
+                filters.state = "all";
+                filters.sort = "created-desc";
+                filters.search = "";
+                filters.dateFrom = "";
+                filters.dateTo = "";
+
+                if (filterState) filterState.value = "all";
+                if (filterSort) filterSort.value = "created-desc";
+                if (filterSearch) filterSearch.value = "";
+                if (filterDateFrom) filterDateFrom.value = "";
+                if (filterDateTo) filterDateTo.value = "";
+
+                applyFilters();
+            });
+        }
+
+        // Crear nueva tarea
+        if (newTaskForm) {
+            newTaskForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const title = newTitleInput.value.trim();
+                const description = newDescInput.value.trim();
+
+                if (!title) {
+                    setStatus("El título de la tarea es obligatorio.", "error");
+                    return;
+                }
+
+                createTask(title, description);
+                newTitleInput.value = "";
+                newDescInput.value = "";
+            });
+        }
+
+        // Cargar tareas al iniciar
+        fetchTasks();
+    });
 </script>
